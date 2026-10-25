@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ronald's Radio!</title>
-    <link rel="icon" type="image/png" href="App_logo.png">
+    <link rel="icon" type="image/png" href="app_logo.png">
     
     <style>
         body {
@@ -340,7 +340,7 @@
 
 <body>
 
-    <h1>📻 Mijn Radio</h1>
+    <h1>📻 Ronald's Radio</h1>
 
     <div class="grid" id="station-grid">
 
@@ -489,6 +489,7 @@
         function playRadio(name, url, btnElement = null, saveToMemory = true) {
             statusText.innerText = "Nu live: " + name;
             player.pause();
+            player.src = ""; // Forceer lege bron zodat oude streams direct stoppen
             player.src = url;
             player.load();
             player.play().then(() => {
@@ -692,7 +693,7 @@
             });
         }
 
-        /* CONFIG MODAL */
+        /* CONFIG MODAL & MODERNE WEKKER */
         function openSleepConfig() {
             document.getElementById('config-title').innerText = "Slaaptimer Instellen";
             document.getElementById('config-content').innerHTML = `
@@ -709,10 +710,23 @@
         function openAlarmConfig() {
             document.getElementById('config-title').innerText = "Radio Wekker Instellen";
             document.getElementById('config-content').innerHTML = `
-                <p>Kies wektijd:</p>
-                <input type="time" id="alarm-time-input" value="${alarmTime || '07:00'}">
-                <button onclick="saveAlarmSettings(); closeConfigModal();">Wekker Opslaan & Aanzetten</button>
-                <button style="background:#d32f2f; margin-top:10px;" onclick="disableAlarm(); closeConfigModal();">Wekker Uitzetten</button>
+                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 10px;">Kies de gewenste wektijd:</p>
+                <input type="time" id="alarm-time-input" value="${alarmTime || '07:00'}" style="
+                    width: 100%;
+                    padding: 12px;
+                    background-color: #121212;
+                    border: 2px solid #1db954;
+                    color: white;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    text-align: center;
+                    border-radius: 10px;
+                    box-sizing: border-box;
+                    margin-bottom: 15px;
+                    outline: none;
+                ">
+                <button onclick="saveAlarmSettings(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">Wekker Opslaan & Aanzetten</button>
+                <button style="background-color: #d32f2f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;" onclick="disableAlarm(); closeConfigModal();">Wekker Uitzetten</button>
             `;
             document.getElementById('config-modal').style.display = 'block';
         }
