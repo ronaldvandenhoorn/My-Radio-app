@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ronald's Radio!</title>
-<link rel="icon" type="image/png" href="App logo.png">
+    <link rel="icon" type="image/png" href="App logo.png">
     
     <style>
         body {
@@ -281,20 +281,20 @@
 
         /* Tools Box */
         .tools-box {
-    width: 100%;
-    max-width: 570px;
-    background-color: #ffffff; /* Wit gemaakt */
-    border: 2px solid #000000; /* Zwarte omranding toegevoegd */
-    margin-top: 15px;
-    padding: 15px;
-    border-radius: 18px;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+            width: 100%;
+            max-width: 570px;
+            background-color: #ffffff;
+            border: 2px solid #000000;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 18px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
         .tool-group {
             display: flex;
@@ -322,7 +322,8 @@
 
         .tool-label {
             font-size: 0.75rem;
-            color: #aaa;
+            color: #000000;      /* Zwarte tekst */
+            font-weight: bold;   /* Vette tekst */
             text-align: center;
         }
 
@@ -386,7 +387,7 @@
         <label>Stream-link:</label>
         <input type="text" id="station-url" placeholder="https://...">
         
-        <button class="test-btn" onclick="testStreamLink()">Test Stream-link[cite: 8]</button>
+        <button class="test-btn" onclick="testStreamLink()">Test Stream-link</button>
 
         <label>Upload PNG Logo (optioneel):</label>
         <input type="file" id="station-logo-file" accept="image/png, image/jpeg">
@@ -505,16 +506,13 @@
         }
 
         function showActiveEqualizer(url) {
-            // Verwijder oude actieve styling van alle knoppen
             document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('playing'));
             
-            // Zet actieve styling op de juiste knop
             const targetBtn = Array.from(document.querySelectorAll('.station-btn')).find(b => b.getAttribute('data-url') === url);
             if (targetBtn) {
                 targetBtn.classList.add('playing');
             }
 
-            // Toon equalizer in de speler
             playerEq.classList.add('active');
         }
 
@@ -562,7 +560,7 @@
             if (editIndex !== null) {
                 let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
                 let st = stations[editIndex];
-                document.getElementById('modal-title').innerText = "Zender Bewerken[cite: 9]";
+                document.getElementById('modal-title').innerText = "Zender Bewerken";
                 document.getElementById('edit-index').value = editIndex;
                 document.getElementById('station-name').value = st.name;
                 document.getElementById('station-url').value = st.url;
@@ -744,7 +742,7 @@
             clearInterval(sleepTimerInterval);
             sleepTimerInterval = null;
             document.getElementById('timer-display').innerText = "Slaaptimer";
-            document.getElementById('timer-display').style.color = "#aaa";
+            document.getElementById('timer-display').style.color = "#000000";
         }
 
         function updateTimerDisplay() {
@@ -769,7 +767,7 @@
             alarmEnabled = false;
             alarmTime = null;
             document.getElementById('alarm-display').innerText = "Wekker";
-            document.getElementById('alarm-display').style.color = "#aaa";
+            document.getElementById('alarm-display').style.color = "#000000";
             alert("Wekker uitgeschakeld.");
         }
 
@@ -821,14 +819,6 @@
             reader.readAsText(file);
         }
 
-.tool-label {
-    font-size: 0.75rem;
-    color: #000000;      /* Zwarte tekst */
-    font-weight: bold;   /* Vette tekst */
-    text-align: center;
-}
-
-        
         /* AIRPLAY */
         if (window.WebKitPlaybackTargetAvailabilityEvent) {
             player.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
