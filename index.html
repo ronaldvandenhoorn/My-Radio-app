@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ronald's Radio!</title>
-    <link rel="icon" type="image/png" href="app-logo.png">
+    <link rel="icon" type="image/png" href="app_logo.png">
     
     <style>
         body {
@@ -727,7 +727,6 @@
         }
 
         function openAlarmConfig() {
-            // Verzamel alle standaard én opgeslagen zenders om te kunnen kiezen
             let allStations = [
                 { name: 'NPO Radio 1', url: 'https://icecast.omroep.nl/radio1-bb-mp3' },
                 { name: 'Radio 538', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3' },
@@ -785,9 +784,9 @@
         function openBackupConfig() {
             document.getElementById('config-title').innerText = "Backup & Zenders Importeren";
             document.getElementById('config-content').innerHTML = `
-                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 12px;">Sla je zenders op of zet ze terug vanaf een bestand:</p>
+                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 12px;">Sla je zenders op of zet ze terug:</p>
                 
-                <button onclick="exportBackup(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 10px;">💾 Download Backup</button>
+                <button onclick="exportBackup(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 10px;">📋 Kopieer Backup naar Klembord</button>
                 
                 <button onclick="document.getElementById('mobile-import-file').click(); closeConfigModal();" style="background-color: #333; border: 1px solid #1db954; color: white; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">📂 Importeer Backup Bestand</button>
                 
@@ -895,9 +894,22 @@
             }, 1000);
         }
 
-        /* BACKUP & HERSTEL FUNCTIES */
+        /* BACKUP & HERSTEL FUNCTIES (MOBIEL VRIENDELIJK) */
         function exportBackup() {
             const stations = localStorage.getItem('myRadioStations') || '[]';
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(stations).then(() => {
+                    alert("✅ Je zenders zijn gekopieerd naar je klembord! Plak ze even in een WhatsAppje of notitie om ze te bewaren.");
+                }).catch(() => {
+                    fallbackExport(stations);
+                });
+            } else {
+                fallbackExport(stations);
+            }
+        }
+
+        function fallbackExport(stations) {
             const blob = new Blob([stations], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
