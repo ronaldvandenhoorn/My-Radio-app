@@ -322,8 +322,8 @@
 
         .tool-label {
             font-size: 0.75rem;
-            color: #000000;      /* Zwarte tekst */
-            font-weight: bold;   /* Vette tekst */
+            color: #000000;
+            font-weight: bold;
             text-align: center;
         }
 
@@ -396,7 +396,7 @@
         <button class="close-btn" onclick="closeModal()">Annuleren</button>
     </div>
 
-    <!-- POP-UP VOOR INSTELLEN TIMER / ALARM -->
+    <!-- POP-UP VOOR INSTELLEN TIMER / ALARM / BACKUP -->
     <div id="config-modal" class="modal">
         <h3 id="config-title">Instellen</h3>
         <div id="config-content"></div>
@@ -407,7 +407,6 @@
     <div class="player-container">
         <div class="player-header">
             <span id="current-station">Kies een zender</span>
-            <!-- Equalizer animatie in de speler -->
             <div id="player-equalizer" class="equalizer">
                 <div class="eq-bar"></div>
                 <div class="eq-bar"></div>
@@ -453,13 +452,12 @@
             <span class="tool-label">Test</span>
         </div>
 
-        <!-- BACKUP -->
+        <!-- BACKUP & HERSTEL -->
         <div class="tool-group">
-            <button class="tool-btn" onclick="exportBackup()">
+            <button class="tool-btn" onclick="openBackupConfig()">
                 <img class="tool-icon" src="backup.png" alt="Backup">
             </button>
-            <span class="tool-label" onclick="document.getElementById('import-file').click()" style="cursor: pointer;">Backup</span>
-            <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importBackup(event)">
+            <span class="tool-label" onclick="openBackupConfig()" style="cursor: pointer;">Backup</span>
         </div>
 
     </div>
@@ -483,13 +481,14 @@
             loadSavedStations();
             startAlarmChecker();
             restoreLastStation();
+            loadSavedVolume();
         });
 
-        /* RADIO AFSPELEN & EQUALIZER BIJWERKEN */
+        /* RADIO AFSPELEN & EQUALIZER */
         function playRadio(name, url, btnElement = null, saveToMemory = true) {
             statusText.innerText = "Nu live: " + name;
             player.pause();
-            player.src = ""; // Forceer lege bron zodat oude streams direct stoppen
+            player.src = "";
             player.src = url;
             player.load();
             player.play().then(() => {
@@ -535,12 +534,29 @@
             }
         }
 
-        /* VOLUME & MUTE */
+        /* VOLUME REGELING (MOBIEL & DESKTOP) */
         volumeSlider.addEventListener('input', (e) => {
-            player.volume = e.target.value;
+            setAppVolume(e.target.value);
+        });
+
+        volumeSlider.addEventListener('change', (e) => {
+            setAppVolume(e.target.value);
+        });
+
+        function setAppVolume(val) {
+            player.volume = val;
             player.muted = false;
             muteBtn.innerText = "Mute";
-        });
+            localStorage.setItem('radioVolume', val);
+        }
+
+        function loadSavedVolume() {
+            const savedVol = localStorage.getItem('radioVolume');
+            if (savedVol !== null) {
+                player.volume = savedVol;
+                volumeSlider.value = savedVol;
+            }
+        }
 
         function toggleMute() {
             if (player.muted) {
@@ -693,16 +709,16 @@
             });
         }
 
-        /* CONFIG MODAL & MODERNE WEKKER */
+        /* CONFIG MODAL & SLAAPTIMER / WEKKER / BACKUP */
         function openSleepConfig() {
             document.getElementById('config-title').innerText = "Slaaptimer Instellen";
             document.getElementById('config-content').innerHTML = `
-                <p>Kies na hoeveel minuten de radio moet stoppen:</p>
-                <button onclick="setSleepTimer(15); closeConfigModal();">15 Minuten</button>
-                <button onclick="setSleepTimer(30); closeConfigModal();">30 Minuten</button>
-                <button onclick="setSleepTimer(45); closeConfigModal();">45 Minuten</button>
-                <button onclick="setSleepTimer(60); closeConfigModal();">60 Minuten</button>
-                <button style="background:#d32f2f; margin-top:10px;" onclick="cancelSleepTimer(); closeConfigModal();">Timer Uitzetten</button>
+                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 10px;">Kies na hoeveel minuten de radio moet stoppen:</p>
+                <button onclick="setSleepTimer(15); closeConfigModal();" style="margin-bottom: 8px;">15 Minuten</button>
+                <button onclick="setSleepTimer(30); closeConfigModal();" style="margin-bottom: 8px;">30 Minuten</button>
+                <button onclick="setSleepTimer(45); closeConfigModal();" style="margin-bottom: 8px;">45 Minuten</button>
+                <button onclick="setSleepTimer(60); closeConfigModal();" style="margin-bottom: 8px;">60 Minuten</button>
+                <button style="background-color: #d32f2f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;" onclick="cancelSleepTimer(); closeConfigModal();">Timer Uitzetten</button>
             `;
             document.getElementById('config-modal').style.display = 'block';
         }
@@ -727,6 +743,20 @@
                 ">
                 <button onclick="saveAlarmSettings(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">Wekker Opslaan & Aanzetten</button>
                 <button style="background-color: #d32f2f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;" onclick="disableAlarm(); closeConfigModal();">Wekker Uitzetten</button>
+            `;
+            document.getElementById('config-modal').style.display = 'block';
+        }
+
+        function openBackupConfig() {
+            document.getElementById('config-title').innerText = "Backup & Zenders Importeren";
+            document.getElementById('config-content').innerHTML = `
+                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 12px;">Sla je zenders op of zet ze terug vanaf een bestand:</p>
+                
+                <button onclick="exportBackup(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 10px;">💾 Download Backup</button>
+                
+                <button onclick="document.getElementById('mobile-import-file').click(); closeConfigModal();" style="background-color: #333; border: 1px solid #1db954; color: white; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">📂 Importeer Backup Bestand</button>
+                
+                <input type="file" id="mobile-import-file" style="display: none;" accept=".json" onchange="importBackup(event)">
             `;
             document.getElementById('config-modal').style.display = 'block';
         }
@@ -799,7 +829,7 @@
             }, 1000);
         }
 
-        /* BACKUP */
+        /* BACKUP & HERSTEL FUNCTIES */
         function exportBackup() {
             const stations = localStorage.getItem('myRadioStations') || '[]';
             const blob = new Blob([stations], { type: 'application/json' });
