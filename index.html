@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Ronald's Radio</title>
 
-    <!-- PWA / App Logo Instellingen -->
+    <!-- App Logo / PWA Instellingen -->
     <link rel="icon" type="image/png" href="Opstart.png">
     <link rel="apple-touch-icon" href="Opstart.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,7 +45,7 @@
 
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
             width: 100%;
             max-width: 600px;
@@ -60,6 +60,9 @@
             border: 2px solid transparent;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .station-card:active {
@@ -72,20 +75,22 @@
         }
 
         .station-card img {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             object-fit: contain;
             border-radius: 8px;
             margin-bottom: 10px;
-            background-color: #000;
+            background-color: #2a2a2a;
+            padding: 5px;
         }
 
         .station-card h3 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 100%;
         }
 
         .player-bar {
@@ -242,47 +247,55 @@
     <audio id="audioPlayer" crossorigin="anonymous"></audio>
 
     <script>
-        // ALLE 8 VASTE ZENDERS
+        // VASTE ZENDERS EN LOGO-URL'S (Direct werkende online logo's als fallback als lokale bestanden missen)
         const stations = [
             {
                 name: "Radio 10",
                 stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO10.mp3",
-                logo: "radio10.png"
+                logo: "radio10.png",
+                fallbackLogo: "https://static.wixstatic.com/media/2b0bf2_f8d8a62319f04179b293d0d6118b6287~mv2.png"
             },
             {
                 name: "BNR Nieuwsradio",
                 stream: "https://stream.bnr.nl/bnr_mp3_128_20",
-                logo: "bnr.png"
+                logo: "bnr.png",
+                fallbackLogo: "https://www.bnr.nl/assets/img/bnr-logo.png"
             },
             {
                 name: "NPO Radio 2",
                 stream: "https://icecast.omroep.nl/radio2-bb-mp3",
-                logo: "nporadio2.png"
+                logo: "nporadio2.png",
+                fallbackLogo: "https://images.pico.npo.nl/v1/images/3a103c81-fb81-42cb-b169-2fdf56f91d84"
             },
             {
                 name: "Radio Veronica",
                 stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/VERONICA.mp3",
-                logo: "veronica.png"
+                logo: "veronica.png",
+                fallbackLogo: "https://www.radioveronica.nl/static/veronica-logo.png"
             },
             {
                 name: "Radio 538",
                 stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3",
-                logo: "radio538.png"
+                logo: "radio538.png",
+                fallbackLogo: "https://www.538.nl/static/538-logo.png"
             },
             {
                 name: "Qmusic",
                 stream: "https://icecast-qmusicnl-cdp.triple-it.nl/Qmusic_nl_live.mp3",
-                logo: "qmusic.png"
+                logo: "qmusic.png",
+                fallbackLogo: "https://qmusic.nl/assets/logo.png"
             },
             {
                 name: "Sky Radio",
                 stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/SKYRADIO.mp3",
-                logo: "skyradio.png"
+                logo: "skyradio.png",
+                fallbackLogo: "https://www.skyradio.nl/static/skyradio-logo.png"
             },
             {
                 name: "NPO Radio 1",
                 stream: "https://icecast.omroep.nl/radio1-bb-mp3",
-                logo: "nporadio1.png"
+                logo: "nporadio1.png",
+                fallbackLogo: "https://images.pico.npo.nl/v1/images/993c12aa-0c58-4e89-a212-0fa095a51cf3"
             }
         ];
 
@@ -291,7 +304,6 @@
         const nowPlaying = document.getElementById('nowPlaying');
         let currentStationIndex = -1;
 
-        // Wekker en Timer variabelen
         let alarmTargetTime = null;
         let alarmInterval = null;
         let sleepTimerTimeout = null;
@@ -306,7 +318,7 @@
                 card.onclick = () => selectStation(index);
 
                 card.innerHTML = `
-                    <img src="${station.logo}" onerror="this.src='Opstart.png';" alt="${station.name}">
+                    <img src="${station.logo}" onerror="this.onerror=null; this.src='${station.fallbackLogo}';" alt="${station.name}">
                     <h3>${station.name}</h3>
                 `;
                 grid.appendChild(card);
@@ -348,13 +360,11 @@
             audio.volume = val;
         }
 
-        // --- Wekker Logica ---
         function toggleAlarm() {
             const btn = document.getElementById('alarmBtn');
             const timeInput = document.getElementById('alarmTime').value;
 
             if (alarmTargetTime) {
-                // Zet wekker uit
                 alarmTargetTime = null;
                 clearInterval(alarmInterval);
                 btn.innerText = "Zet";
@@ -366,10 +376,9 @@
                     return;
                 }
                 alarmTargetTime = timeInput;
-                btn.innerText = "Anuleer";
+                btn.innerText = "Annuleer";
                 btn.classList.add('active-alarm');
                 
-                // Check elke seconde of de tijd bereikt is
                 alarmInterval = setInterval(() => {
                     const now = new Date();
                     const hours = String(now.getHours()).padStart(2, '0');
@@ -379,7 +388,7 @@
                     if (currentTime === alarmTargetTime) {
                         if (currentStationIndex === -1) currentStationIndex = 0;
                         selectStation(currentStationIndex);
-                        toggleAlarm(); // Schakel wekker uit na afgaan
+                        toggleAlarm();
                     }
                 }, 1000);
 
@@ -387,7 +396,6 @@
             }
         }
 
-        // --- Slaaptimer Logica ---
         function toggleSleepTimer() {
             const btn = document.getElementById('timerBtn');
             const minutes = parseInt(document.getElementById('sleepMinutes').value);
