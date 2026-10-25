@@ -1,1381 +1,839 @@
 <!DOCTYPE html>
-
 <html lang="nl">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Mijn Radio</title>
 
-
-
     <style>
-
         body {
-
             background-color: #121212;
-
             color: #ffffff;
-
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
             margin: 0;
-
             padding: 15px;
-
             display: flex;
-
             flex-direction: column;
-
             align-items: center;
-
         }
-
-
 
         h1 {
-
             color: #1db954;
-
             margin: 10px 0 20px 0;
-
         }
-
-
-
-        /* Twee compacte knoppen naast elkaar */
 
         .grid {
-
             display: grid;
-
             grid-template-columns: repeat(2, 1fr);
-
             gap: 10px;
-
             width: 100%;
-
             max-width: 600px;
-
         }
-
-
 
         .station-btn {
-
+            position: relative;
             background-color: #1e1e1e;
-
             color: white;
-
             border: 2px solid #333;
-
             padding: 10px 6px;
-
             font-size: 0.9rem;
-
             font-weight: bold;
-
             border-radius: 12px;
-
             cursor: pointer;
-
-
-
             display: flex;
-
             flex-direction: column;
-
             align-items: center;
-
             justify-content: center;
-
-
-
             min-height: 105px;
-
             text-align: center;
-
-
-
             transition: all 0.2s ease;
-
         }
-
-
 
         .station-btn:hover,
-
         .station-btn:focus {
-
             background-color: #1db954;
-
             border-color: white;
-
-            transform: scale(1.03);
-
+            transform: scale(1.02);
             outline: none;
-
         }
 
-
-
-        /* Logo */
+        .station-btn.playing {
+            border-color: #1db954;
+            background-color: #16291d;
+        }
 
         .station-logo {
-
             width: 70px;
-
             height: 52px;
-
             object-fit: contain;
-
             margin-bottom: 7px;
-
         }
-
-
 
         .station-icon {
-
             font-size: 36px;
-
             margin-bottom: 7px;
-
         }
 
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
+        .delete-btn:hover {
+            background: red;
+        }
 
-        /* Toevoegen */
+        .edit-btn {
+            position: absolute;
+            top: 5px;
+            right: 32px;
+            background: rgba(30, 185, 84, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn:hover {
+            background: #1db954;
+        }
 
         .add-btn {
-
             background-color: #282828;
-
             color: #1db954;
-
             border: 2px dashed #1db954;
-
         }
-
-
 
         .add-btn:hover {
-
             background-color: #1db954;
-
             color: white;
-
             border-style: solid;
-
         }
 
-
-
-        /* Pop-up */
-
+        /* Pop-up modal */
         .modal {
-
             display: none;
-
             position: fixed;
-
             top: 50%;
-
             left: 50%;
-
             transform: translate(-50%, -50%);
-
             background-color: #282828;
-
             padding: 25px;
-
             border-radius: 15px;
-
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-
             z-index: 10;
-
             width: 85%;
-
             max-width: 400px;
-
         }
 
-
-
-        .modal input {
-
+        .modal input[type="text"],
+        .modal input[type="file"],
+        .modal select {
             width: 100%;
-
             padding: 10px;
-
             margin: 8px 0 18px 0;
-
             background-color: #121212;
-
             border: 1px solid #444;
-
             color: white;
-
             border-radius: 5px;
-
             box-sizing: border-box;
-
         }
-
-
 
         .modal button {
-
             background-color: #1db954;
-
             color: white;
-
             border: none;
-
             padding: 11px;
-
             font-weight: bold;
-
             border-radius: 5px;
-
             cursor: pointer;
-
             width: 100%;
-
+            margin-top: 5px;
         }
 
-
+        .modal .test-btn {
+            background-color: #333;
+            border: 1px solid #1db954;
+        }
 
         .modal .close-btn {
-
             background-color: #666;
-
             margin-top: 10px;
-
         }
 
-
-
-        /* Player */
-
+        /* Player & Extra Tools */
         .player-container {
-
             margin-top: 25px;
-
             background-color: #1e1e1e;
-
             padding: 15px;
-
             border-radius: 18px;
-
-
-
             display: flex;
-
             flex-direction: column;
-
             align-items: center;
-
-
-
             gap: 12px;
-
-
-
             width: 100%;
-
             max-width: 570px;
-
             box-sizing: border-box;
-
-
-
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-
         }
 
-
+        .player-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+        }
 
         #current-station {
-
             font-weight: bold;
-
         }
-
-
 
         audio {
-
             width: 100%;
-
         }
 
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            font-size: 0.9rem;
+        }
 
+        .volume-slider {
+            flex-grow: 1;
+            accent-color: #1db954;
+            cursor: pointer;
+        }
+
+        .mute-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .mute-btn:hover {
+            background-color: #444;
+        }
 
         .airplay-btn {
-
             background-color: #333;
-
             color: white;
-
             border: none;
-
             padding: 10px 20px;
-
             border-radius: 20px;
-
             cursor: pointer;
-
             font-weight: bold;
-
             display: none;
-
         }
 
+        /* --- MINI EQUALIZER ANIMATIE --- */
+        .equalizer {
+            display: none;
+            align-items: flex-end;
+            gap: 3px;
+            height: 18px;
+            width: 22px;
+        }
 
+        .equalizer.active {
+            display: flex;
+        }
 
-        /* Extra compact op iPhone */
+        .eq-bar {
+            width: 4px;
+            background-color: #1db954;
+            animation: bounce 0.6s infinite alternate ease-in-out;
+        }
+
+        .eq-bar:nth-child(1) { animation-delay: 0.1s; height: 40%; }
+        .eq-bar:nth-child(2) { animation-delay: 0.3s; height: 100%; }
+        .eq-bar:nth-child(3) { animation-delay: 0.2s; height: 70%; }
+
+        @keyframes bounce {
+            0% { height: 20%; }
+            100% { height: 100%; }
+        }
+
+        /* Tools Box */
+        .tools-box {
+            width: 100%;
+            max-width: 570px;
+            background-color: #1e1e1e;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 18px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .tool-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .tool-btn:hover .tool-icon {
+            filter: brightness(1.2);
+        }
+
+        .tool-label {
+            font-size: 0.75rem;
+            color: #aaa;
+            text-align: center;
+        }
 
         @media (max-width: 400px) {
-
-
-
-            body {
-
-                padding: 12px;
-
-            }
-
-
-
-            h1 {
-
-                font-size: 1.6rem;
-
-            }
-
-
-
-            .grid {
-
-                gap: 8px;
-
-            }
-
-
-
-            .station-btn {
-
-                min-height: 100px;
-
-                padding: 8px 5px;
-
-                font-size: 0.85rem;
-
-            }
-
-
-
-            .station-logo {
-
-                width: 62px;
-
-                height: 47px;
-
-            }
-
+            body { padding: 12px; }
+            h1 { font-size: 1.6rem; }
+            .grid { gap: 8px; }
+            .station-btn { min-height: 100px; padding: 8px 5px; font-size: 0.85rem; }
+            .station-logo { width: 62px; height: 47px; }
+            .tool-icon { width: 32px; height: 32px; }
         }
-
     </style>
-
 </head>
-
-
 
 <body>
 
-
-
     <h1>📻 Mijn Radio</h1>
-
-
 
     <div class="grid" id="station-grid">
 
-
-
         <!-- NPO RADIO 1 -->
-
-        <button
-
-            class="station-btn"
-
-            onclick="playRadio(
-
-                'NPO Radio 1',
-
-                'https://icecast.omroep.nl/radio1-bb-mp3'
-
-            )">
-
-
-
-            <img
-
-                class="station-logo"
-
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/NPO\_Radio\_1\_logo\_2023.svg/512px-NPO\_Radio\_1\_logo\_2023.svg.png"
-
-                alt="NPO Radio 1"
-
-                onerror="this.style.display='none'"
-
-            >
-
-
-
+        <button class="station-btn" data-url="https://icecast.omroep.nl/radio1-bb-mp3" onclick="playRadio('NPO Radio 1', 'https://icecast.omroep.nl/radio1-bb-mp3', this)">
+            <img class="station-logo" src="nporadio1logo.png" alt="NPO Radio 1">
             <span>NPO Radio 1</span>
-
         </button>
-
-
-
-
 
         <!-- RADIO 538 -->
-
-        <button
-
-            class="station-btn"
-
-            onclick="playRadio(
-
-                'Radio 538',
-
-                'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3'
-
-            )">
-
-
-
-            <img
-
-                class="station-logo"
-
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Radio\_538\_logo\_2024.svg/512px-Radio\_538\_logo\_2024.svg.png"
-
-                alt="Radio 538"
-
-                onerror="this.style.display='none'"
-
-            >
-
-
-
+        <button class="station-btn" data-url="https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3" onclick="playRadio('Radio 538', 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3', this)">
+            <img class="station-logo" src="Radio 538logo.png" alt="Radio 538">
             <span>Radio 538</span>
-
         </button>
-
-
-
-
 
         <!-- JOE NEDERLAND -->
-
-        <button
-
-            class="station-btn"
-
-            onclick="playRadio(
-
-                'JOE Nederland',
-
-                'https://stream.joe.nl/joe/mp3'
-
-            )">
-
-
-
-            <img
-
-                class="station-logo"
-
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/JOE\_logo.svg/512px-JOE\_logo.svg.png"
-
-                alt="JOE Nederland"
-
-                onerror="this.style.display='none'"
-
-            >
-
-
-
+        <button class="station-btn" data-url="https://stream.joe.nl/joe/mp3" onclick="playRadio('JOE Nederland', 'https://stream.joe.nl/joe/mp3', this)">
+            <img class="station-logo" src="Joe_logo.png" alt="JOE Nederland">
             <span>JOE Nederland</span>
-
         </button>
-
-
-
-
 
         <!-- NDR 2 HAMBURG -->
-
-        <button
-
-            class="station-btn"
-
-            onclick="playRadio(
-
-                'NDR 2 Hamburg',
-
-                'https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3'
-
-            )">
-
-
-
-            <img
-
-                class="station-logo"
-
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/NDR\_2\_Logo.svg/512px-NDR\_2\_Logo.svg.png"
-
-                alt="NDR 2 Hamburg"
-
-                onerror="this.style.display='none'"
-
-            >
-
-
-
+        <button class="station-btn" data-url="https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3" onclick="playRadio('NDR 2 Hamburg', 'https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3', this)">
+            <img class="station-logo" src="NDR2_logo.png" alt="NDR 2 Hamburg">
             <span>NDR 2 Hamburg</span>
-
         </button>
-
-
-
-
 
         <!-- TOEVOEGEN -->
-
-        <button
-
-            class="station-btn add-btn"
-
-            onclick="openModal()">
-
-
-
+        <button class="station-btn add-btn" onclick="openModal()">
             <span class="station-icon">➕</span>
-
             <span>Zender Toevoegen</span>
-
-
-
         </button>
-
-
 
     </div>
 
-
-
-
-
-    <!-- POP-UP -->
-
+    <!-- POP-UP VOOR TOEVOEGEN / BEWERKEN -->
     <div id="add-modal" class="modal">
-
-
-
-        <h3>Nieuwe Zender Toevoegen</h3>
-
-
-
+        <h3 id="modal-title">Nieuwe Zender Toevoegen</h3>
+        <input type="hidden" id="edit-index" value="">
+        
         <label>Naam van de radiozender:</label>
-
-
-
-        <input
-
-            type="text"
-
-            id="station-name"
-
-            placeholder="Bijv. Radio 10"
-
-        >
-
-
-
-
+        <input type="text" id="station-name" placeholder="Bijv. Radio 10">
 
         <label>Stream-link:</label>
+        <input type="text" id="station-url" placeholder="https://...">
+        
+        <button class="test-btn" onclick="testStreamLink()">Test Stream-link[cite: 8]</button>
 
+        <label>Upload PNG Logo (optioneel):</label>
+        <input type="file" id="station-logo-file" accept="image/png, image/jpeg">
 
-
-        <input
-
-            type="text"
-
-            id="station-url"
-
-            placeholder="https://..."
-
-        >
-
-
-
-
-
-        <label>Logo-link (optioneel):</label>
-
-
-
-        <input
-
-            type="text"
-
-            id="station-logo"
-
-            placeholder="https://...logo.png"
-
-        >
-
-
-
-
-
-        <button onclick="saveStation()">
-
-            Opslaan
-
-        </button>
-
-
-
-        <button
-
-            class="close-btn"
-
-            onclick="closeModal()">
-
-
-
-            Annuleren
-
-
-
-        </button>
-
-
-
+        <button onclick="saveStation()">Opslaan</button>
+        <button class="close-btn" onclick="closeModal()">Annuleren</button>
     </div>
 
-
-
-
+    <!-- POP-UP VOOR INSTELLEN TIMER / ALARM -->
+    <div id="config-modal" class="modal">
+        <h3 id="config-title">Instellen</h3>
+        <div id="config-content"></div>
+        <button class="close-btn" onclick="closeConfigModal()">Sluiten</button>
+    </div>
 
     <!-- AUDIO PLAYER -->
-
     <div class="player-container">
+        <div class="player-header">
+            <span id="current-station">Kies een zender</span>
+            <!-- Equalizer animatie in de speler -->
+            <div id="player-equalizer" class="equalizer">
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+            </div>
+        </div>
+        
+        <audio id="audio-player" controls playsinline></audio>
 
+        <div class="volume-container">
+            <span>🔊</span>
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1">
+            <button class="mute-btn" id="mute-btn" onclick="toggleMute()">Mute</button>
+        </div>
 
+        <button id="airplay-button" class="airplay-btn" onclick="triggerAirPlay()">📺 AirPlay</button>
+    </div>
 
-        <span id="current-station">
+    <!-- EXTRA TOOLS -->
+    <div class="tools-box">
+        
+        <!-- SLEEPTIMER -->
+        <div class="tool-group">
+            <button class="tool-btn" onclick="openSleepConfig()">
+                <img class="tool-icon" src="Sleeptimer.png" alt="Slaaptimer">
+            </button>
+            <span id="timer-display" class="tool-label">Slaaptimer</span>
+        </div>
 
-            Kies een zender
+        <!-- ALARM -->
+        <div class="tool-group">
+            <button class="tool-btn" onclick="openAlarmConfig()">
+                <img class="tool-icon" src="alarm.png" alt="Wekker">
+            </button>
+            <span id="alarm-display" class="tool-label">Wekker</span>
+        </div>
 
-        </span>
+        <!-- STREAM TEST -->
+        <div class="tool-group">
+            <button class="tool-btn" onclick="openModal()">
+                <img class="tool-icon" src="test.png" alt="Test">
+            </button>
+            <span class="tool-label">Test</span>
+        </div>
 
-
-
-        <audio
-
-            id="audio-player"
-
-            controls
-
-            playsinline>
-
-        </audio>
-
-
-
-        <button
-
-            id="airplay-button"
-
-            class="airplay-btn"
-
-            onclick="triggerAirPlay()">
-
-
-
-            📺 AirPlay
-
-
-
-        </button>
-
-
+        <!-- BACKUP -->
+        <div class="tool-group">
+            <button class="tool-btn" onclick="exportBackup()">
+                <img class="tool-icon" src="backup.png" alt="Backup">
+            </button>
+            <span class="tool-label" onclick="document.getElementById('import-file').click()" style="cursor: pointer;">Backup</span>
+            <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importBackup(event)">
+        </div>
 
     </div>
 
-
-
-
-
     <script>
+        const player = document.getElementById('audio-player');
+        const statusText = document.getElementById('current-station');
+        const airplayBtn = document.getElementById('airplay-button');
+        const grid = document.getElementById('station-grid');
+        const volumeSlider = document.getElementById('volume-slider');
+        const muteBtn = document.getElementById('mute-btn');
+        const playerEq = document.getElementById('player-equalizer');
 
+        let sleepTimerInterval = null;
+        let timerSecondsLeft = 0;
+        let alarmTime = null;
+        let alarmEnabled = false;
+        let lastVolume = 1;
 
+        document.addEventListener("DOMContentLoaded", () => {
+            loadSavedStations();
+            startAlarmChecker();
+            restoreLastStation();
+        });
 
-        const player =
-
-            document.getElementById('audio-player');
-
-
-
-        const statusText =
-
-            document.getElementById('current-station');
-
-
-
-        const airplayBtn =
-
-            document.getElementById('airplay-button');
-
-
-
-        const grid =
-
-            document.getElementById('station-grid');
-
-
-
-
-
-        document.addEventListener(
-
-            "DOMContentLoaded",
-
-            loadSavedStations
-
-        );
-
-
-
-
-
-        /* RADIO AFSPELEN */
-
-
-
-        function playRadio(name, url) {
-
-
-
-            statusText.innerText =
-
-                "Nu live: " + name;
-
-
-
+        /* RADIO AFSPELEN & EQUALIZER BIJWERKEN */
+        function playRadio(name, url, btnElement = null, saveToMemory = true) {
+            statusText.innerText = "Nu live: " + name;
             player.pause();
-
-
-
             player.src = url;
-
-
-
             player.load();
-
-
-
-            player.play().catch(function(error) {
-
-
-
+            player.play().then(() => {
+                showActiveEqualizer(url);
+            }).catch(function(error) {
                 console.error(error);
-
-
-
-                statusText.innerText =
-
-                    "Kan " + name + " niet afspelen";
-
-
-
+                statusText.innerText = "Kan " + name + " niet afspelen";
+                hideActiveEqualizer();
             });
 
-
-
+            if (saveToMemory) {
+                localStorage.setItem('lastStationName', name);
+                localStorage.setItem('lastStationUrl', url);
+            }
         }
 
+        function showActiveEqualizer(url) {
+            // Verwijder oude actieve styling van alle knoppen
+            document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('playing'));
+            
+            // Zet actieve styling op de juiste knop
+            const targetBtn = Array.from(document.querySelectorAll('.station-btn')).find(b => b.getAttribute('data-url') === url);
+            if (targetBtn) {
+                targetBtn.classList.add('playing');
+            }
 
-
-
-
-        /* POP-UP OPENEN */
-
-
-
-        function openModal() {
-
-
-
-            document.getElementById(
-
-                'add-modal'
-
-            ).style.display = 'block';
-
-
-
+            // Toon equalizer in de speler
+            playerEq.classList.add('active');
         }
 
-
-
-
-
-        function closeModal() {
-
-
-
-            document.getElementById(
-
-                'add-modal'
-
-            ).style.display = 'none';
-
-
-
+        function hideActiveEqualizer() {
+            document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('playing'));
+            playerEq.classList.remove('active');
         }
 
+        player.addEventListener('pause', () => {
+            hideActiveEqualizer();
+        });
 
+        function restoreLastStation() {
+            const lastName = localStorage.getItem('lastStationName');
+            const lastUrl = localStorage.getItem('lastStationUrl');
+            if (lastName && lastUrl) {
+                statusText.innerText = "Klaar om te spelen: " + lastName;
+                player.src = lastUrl;
+            }
+        }
 
+        /* VOLUME & MUTE */
+        volumeSlider.addEventListener('input', (e) => {
+            player.volume = e.target.value;
+            player.muted = false;
+            muteBtn.innerText = "Mute";
+        });
 
+        function toggleMute() {
+            if (player.muted) {
+                player.muted = false;
+                volumeSlider.value = lastVolume;
+                muteBtn.innerText = "Mute";
+            } else {
+                lastVolume = player.volume;
+                player.muted = true;
+                volumeSlider.value = 0;
+                muteBtn.innerText = "Unmute";
+            }
+        }
 
-        /* NIEUWE ZENDER OPSLAAN */
+        /* MODAL BEHEER */
+        function openModal(editIndex = null) {
+            document.getElementById('add-modal').style.display = 'block';
+            if (editIndex !== null) {
+                let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+                let st = stations[editIndex];
+                document.getElementById('modal-title').innerText = "Zender Bewerken[cite: 9]";
+                document.getElementById('edit-index').value = editIndex;
+                document.getElementById('station-name').value = st.name;
+                document.getElementById('station-url').value = st.url;
+            } else {
+                document.getElementById('modal-title').innerText = "Nieuwe Zender Toevoegen";
+                document.getElementById('edit-index').value = '';
+                document.getElementById('station-name').value = '';
+                document.getElementById('station-url').value = '';
+                document.getElementById('station-logo-file').value = '';
+            }
+        }
 
+        function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
 
+        /* STREAM TEST */
+        function testStreamLink() {
+            const url = document.getElementById('station-url').value.trim();
+            if (!url) {
+                alert("Vul eerst een stream-link in om te testen!");
+                return;
+            }
+            const testAudio = new Audio(url);
+            testAudio.play().then(() => {
+                testAudio.pause();
+                alert("✅ Deze stream-link werkt en kan worden afgespeeld!");
+            }).catch(() => {
+                alert("❌ Kan geen verbinding maken met deze stream-link.");
+            });
+        }
 
         function saveStation() {
-
-
-
-            const name =
-
-                document.getElementById(
-
-                    'station-name'
-
-                ).value.trim();
-
-
-
-            const url =
-
-                document.getElementById(
-
-                    'station-url'
-
-                ).value.trim();
-
-
-
-            const logo =
-
-                document.getElementById(
-
-                    'station-logo'
-
-                ).value.trim();
-
-
-
-
-
-            if (name && url) {
-
-
-
-                let stations =
-
-                    JSON.parse(
-
-                        localStorage.getItem(
-
-                            'myRadioStations'
-
-                        )
-
-                    ) || [];
-
-
-
-
-
-                stations.push({
-
-                    name: name,
-
-                    url: url,
-
-                    logo: logo
-
-                });
-
-
-
-
-
-                localStorage.setItem(
-
-                    'myRadioStations',
-
-                    JSON.stringify(stations)
-
-                );
-
-
-
-
-
-                document.getElementById(
-
-                    'station-name'
-
-                ).value = '';
-
-
-
-                document.getElementById(
-
-                    'station-url'
-
-                ).value = '';
-
-
-
-                document.getElementById(
-
-                    'station-logo'
-
-                ).value = '';
-
-
-
-
-
-                closeModal();
-
-
-
-                loadSavedStations();
-
-
-
-            } else {
-
-
-
-                alert(
-
-                    "Vul zowel de naam als de stream-link in!"
-
-                );
-
-
-
+            const name = document.getElementById('station-name').value.trim();
+            const url = document.getElementById('station-url').value.trim();
+            const editIndex = document.getElementById('edit-index').value;
+            const fileInput = document.getElementById('station-logo-file');
+
+            if (!name || !url) {
+                alert("Vul zowel de naam als de stream-link in!");
+                return;
             }
 
-
-
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    processStationSave(name, url, e.target.result, editIndex);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                let existingLogo = '';
+                if (editIndex !== '') {
+                    let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+                    existingLogo = stations[editIndex].logo || '';
+                }
+                processStationSave(name, url, existingLogo, editIndex);
+            }
         }
 
+        function processStationSave(name, url, logo, editIndex) {
+            let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+            if (editIndex !== '') {
+                stations[editIndex] = { name: name, url: url, logo: logo };
+            } else {
+                stations.push({ name: name, url: url, logo: logo });
+            }
+            localStorage.setItem('myRadioStations', JSON.stringify(stations));
+            closeModal();
+            loadSavedStations();
+        }
 
-
-
-
-        /* OPGESLAGEN ZENDERS LADEN */
-
-
+        function deleteStation(index) {
+            let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+            stations.splice(index, 1);
+            localStorage.setItem('myRadioStations', JSON.stringify(stations));
+            loadSavedStations();
+        }
 
         function loadSavedStations() {
+            const customButtons = grid.querySelectorAll('.custom-station');
+            customButtons.forEach(button => button.remove());
 
+            const stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+            const addBtn = grid.querySelector('.add-btn');
 
+            stations.forEach((station, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'station-btn custom-station';
+                btn.setAttribute('data-url', station.url);
 
-            const customButtons =
+                const delBtn = document.createElement('span');
+                delBtn.className = 'delete-btn';
+                delBtn.innerHTML = '✕';
+                delBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    deleteStation(index);
+                };
+                btn.appendChild(delBtn);
 
-                grid.querySelectorAll(
-
-                    '.custom-station'
-
-                );
-
-
-
-
-
-            customButtons.forEach(
-
-                button => button.remove()
-
-            );
-
-
-
-
-
-            const stations =
-
-                JSON.parse(
-
-                    localStorage.getItem(
-
-                        'myRadioStations'
-
-                    )
-
-                ) || [];
-
-
-
-
-
-            const addBtn =
-
-                grid.querySelector(
-
-                    '.add-btn'
-
-                );
-
-
-
-
-
-            stations.forEach(station => {
-
-
-
-                const btn =
-
-                    document.createElement(
-
-                        'button'
-
-                    );
-
-
-
-
-
-                btn.className =
-
-                    'station-btn custom-station';
-
-
-
-
-
-                /* LOGO */
-
-
+                const editBtn = document.createElement('span');
+                editBtn.className = 'edit-btn';
+                editBtn.innerHTML = '✏️';
+                editBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    openModal(index);
+                };
+                btn.appendChild(editBtn);
 
                 if (station.logo) {
-
-
-
-                    const img =
-
-                        document.createElement(
-
-                            'img'
-
-                        );
-
-
-
-
-
-                    img.className =
-
-                        'station-logo';
-
-
-
-                    img.src =
-
-                        station.logo;
-
-
-
-                    img.alt =
-
-                        station.name;
-
-
-
-
-
-                    img.onerror =
-
-                        function() {
-
-
-
-                            this.remove();
-
-
-
-                            const icon =
-
-                                document.createElement(
-
-                                    'div'
-
-                                );
-
-
-
-                            icon.className =
-
-                                'station-icon';
-
-
-
-                            icon.innerText =
-
-                                '📻';
-
-
-
-
-
-                            btn.insertBefore(
-
-                                icon,
-
-                                btn.firstChild
-
-                            );
-
-
-
-                        };
-
-
-
-
-
+                    const img = document.createElement('img');
+                    img.className = 'station-logo';
+                    img.src = station.logo;
+                    img.alt = station.name;
                     btn.appendChild(img);
-
-
-
                 } else {
-
-
-
-                    const icon =
-
-                        document.createElement(
-
-                            'div'
-
-                        );
-
-
-
-
-
-                    icon.className =
-
-                        'station-icon';
-
-
-
-                    icon.innerText =
-
-                        '📻';
-
-
-
-
-
+                    const icon = document.createElement('div');
+                    icon.className = 'station-icon';
+                    icon.innerText = '📻';
                     btn.appendChild(icon);
-
-
-
                 }
 
-
-
-
-
-                /* NAAM */
-
-
-
-                const label =
-
-                    document.createElement(
-
-                        'span'
-
-                    );
-
-
-
-
-
-                label.innerText =
-
-                    station.name;
-
-
-
-
-
+                const label = document.createElement('span');
+                label.innerText = station.name;
                 btn.appendChild(label);
 
+                btn.onclick = function() {
+                    playRadio(station.name, station.url, btn);
+                };
 
-
-
-
-                /* AFSPELEN */
-
-
-
-                btn.onclick =
-
-                    function() {
-
-
-
-                        playRadio(
-
-                            station.name,
-
-                            station.url
-
-                        );
-
-
-
-                    };
-
-
-
-
-
-                grid.insertBefore(
-
-                    btn,
-
-                    addBtn
-
-                );
-
-
-
+                grid.insertBefore(btn, addBtn);
             });
-
-
-
         }
 
+        /* CONFIG MODAL */
+        function openSleepConfig() {
+            document.getElementById('config-title').innerText = "Slaaptimer Instellen";
+            document.getElementById('config-content').innerHTML = `
+                <p>Kies na hoeveel minuten de radio moet stoppen:</p>
+                <button onclick="setSleepTimer(15); closeConfigModal();">15 Minuten</button>
+                <button onclick="setSleepTimer(30); closeConfigModal();">30 Minuten</button>
+                <button onclick="setSleepTimer(45); closeConfigModal();">45 Minuten</button>
+                <button onclick="setSleepTimer(60); closeConfigModal();">60 Minuten</button>
+                <button style="background:#d32f2f; margin-top:10px;" onclick="cancelSleepTimer(); closeConfigModal();">Timer Uitzetten</button>
+            `;
+            document.getElementById('config-modal').style.display = 'block';
+        }
 
+        function openAlarmConfig() {
+            document.getElementById('config-title').innerText = "Radio Wekker Instellen";
+            document.getElementById('config-content').innerHTML = `
+                <p>Kies wektijd:</p>
+                <input type="time" id="alarm-time-input" value="${alarmTime || '07:00'}">
+                <button onclick="saveAlarmSettings(); closeConfigModal();">Wekker Opslaan & Aanzetten</button>
+                <button style="background:#d32f2f; margin-top:10px;" onclick="disableAlarm(); closeConfigModal();">Wekker Uitzetten</button>
+            `;
+            document.getElementById('config-modal').style.display = 'block';
+        }
 
+        function closeConfigModal() { document.getElementById('config-modal').style.display = 'none'; }
 
+        /* SLAAPTIMER */
+        function setSleepTimer(minutes) {
+            timerSecondsLeft = minutes * 60;
+            updateTimerDisplay();
+            document.getElementById('timer-display').style.color = "#1db954";
+
+            if (sleepTimerInterval) clearInterval(sleepTimerInterval);
+            sleepTimerInterval = setInterval(() => {
+                timerSecondsLeft--;
+                updateTimerDisplay();
+
+                if (timerSecondsLeft <= 0) {
+                    player.pause();
+                    statusText.innerText = "Radio gestopt (Slaaptimer)";
+                    cancelSleepTimer();
+                }
+            }, 1000);
+        }
+
+        function cancelSleepTimer() {
+            clearInterval(sleepTimerInterval);
+            sleepTimerInterval = null;
+            document.getElementById('timer-display').innerText = "Slaaptimer";
+            document.getElementById('timer-display').style.color = "#aaa";
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSecondsLeft / 60);
+            const s = timerSecondsLeft % 60;
+            document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        /* ALARM */
+        function saveAlarmSettings() {
+            const val = document.getElementById('alarm-time-input').value;
+            if (val) {
+                alarmTime = val;
+                alarmEnabled = true;
+                document.getElementById('alarm-display').innerText = alarmTime;
+                document.getElementById('alarm-display').style.color = "#1db954";
+                alert(`Wekker ingeschakeld voor ${alarmTime}!`);
+            }
+        }
+
+        function disableAlarm() {
+            alarmEnabled = false;
+            alarmTime = null;
+            document.getElementById('alarm-display').innerText = "Wekker";
+            document.getElementById('alarm-display').style.color = "#aaa";
+            alert("Wekker uitgeschakeld.");
+        }
+
+        function startAlarmChecker() {
+            setInterval(() => {
+                if (!alarmEnabled || !alarmTime) return;
+                const now = new Date();
+                const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                if (currentTimeStr === alarmTime && now.getSeconds() === 0) {
+                    playRadio('NPO Radio 1', 'https://icecast.omroep.nl/radio1-bb-mp3');
+                    disableAlarm();
+                    alert(`⏰ Wekker! Goedemorgen.`);
+                }
+            }, 1000);
+        }
+
+        /* BACKUP */
+        function exportBackup() {
+            const stations = localStorage.getItem('myRadioStations') || '[]';
+            const blob = new Blob([stations], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mijn-radio-backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const stations = JSON.parse(e.target.result);
+                    if (Array.isArray(stations)) {
+                        localStorage.setItem('myRadioStations', JSON.stringify(stations));
+                        loadSavedStations();
+                        alert("Backup succesvol teruggezet!");
+                    } else {
+                        alert("Ongeldig backup-bestand.");
+                    }
+                } catch (err) {
+                    alert("Fout bij het lezen van het bestand.");
+                }
+            };
+            reader.readAsText(file);
+        }
 
         /* AIRPLAY */
-
-
-
-        if (
-
-            window.WebKitPlaybackTargetAvailabilityEvent
-
-        ) {
-
-
-
-            player.addEventListener(
-
-                'webkitplaybacktargetavailabilitychanged',
-
-                function(event) {
-
-
-
-                    if (
-
-                        event.availability ===
-
-                        'available'
-
-                    ) {
-
-
-
-                        airplayBtn.style.display =
-
-                            'block';
-
-
-
-                    }
-
-
-
+        if (window.WebKitPlaybackTargetAvailabilityEvent) {
+            player.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
+                if (event.availability === 'available') {
+                    airplayBtn.style.display = 'block';
                 }
-
-            );
-
-
-
+            });
         }
-
-
-
-
 
         function triggerAirPlay() {
-
-
-
-            if (
-
-                player.webkitShowPlaybackTargetPicker
-
-            ) {
-
-
-
+            if (player.webkitShowPlaybackTargetPicker) {
                 player.webkitShowPlaybackTargetPicker();
-
-
-
             }
-
-
-
         }
-
-
-
     </script>
 
-
-
 </body>
-
 </html>
