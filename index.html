@@ -2,948 +2,418 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ronald's Radio!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ronald's Radio</title>
+
+    <!-- PWA / App Logo Instellingen -->
     <link rel="icon" type="image/png" href="Opstart.png">
-    
+    <link rel="apple-touch-icon" href="Opstart.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ronald Radio">
+
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             background-color: #121212;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 15px;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+            justify-content: space-between;
             align-items: center;
+            padding: 20px;
         }
 
-        h1 {
+        header {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
             color: #1db954;
-            margin: 10px 0 20px 0;
         }
 
-        .grid {
+        .station-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
             width: 100%;
             max-width: 600px;
         }
 
-        .station-btn {
-            position: relative;
+        .station-card {
             background-color: #1e1e1e;
-            color: white;
-            border: 2px solid #333;
-            padding: 10px 6px;
-            font-size: 0.9rem;
-            font-weight: bold;
             border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 105px;
+            padding: 15px;
             text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
             transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .station-btn:hover,
-        .station-btn:focus {
-            background-color: #1db954;
-            border-color: white;
-            transform: scale(1.02);
-            outline: none;
+        .station-card:active {
+            transform: scale(0.96);
         }
 
-        .station-btn.playing {
+        .station-card.active {
             border-color: #1db954;
-            background-color: #16291d;
+            background-color: #282828;
         }
 
-        .station-logo {
-            width: 70px;
-            height: 52px;
+        .station-card img {
+            width: 60px;
+            height: 60px;
             object-fit: contain;
-            margin-bottom: 7px;
-        }
-
-        .station-icon {
-            font-size: 36px;
-            margin-bottom: 7px;
-        }
-
-        .delete-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .delete-btn:hover {
-            background: red;
-        }
-
-        .edit-btn {
-            position: absolute;
-            top: 5px;
-            right: 32px;
-            background: rgba(30, 185, 84, 0.8);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .edit-btn:hover {
-            background: #1db954;
-        }
-
-        .add-btn {
-            background-color: #282828;
-            color: #1db954;
-            border: 2px dashed #1db954;
-        }
-
-        .add-btn:hover {
-            background-color: #1db954;
-            color: white;
-            border-style: solid;
-        }
-
-        /* Pop-up modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #282828;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            z-index: 10;
-            width: 85%;
-            max-width: 400px;
-        }
-
-        .modal input[type="text"],
-        .modal input[type="file"],
-        .modal select,
-        .modal textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0 18px 0;
-            background-color: #121212;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .modal button {
-            background-color: #1db954;
-            color: white;
-            border: none;
-            padding: 11px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 5px;
-        }
-
-        .modal .close-btn {
-            background-color: #666;
-            margin-top: 10px;
-        }
-
-        /* Player & Extra Tools */
-        .player-container {
-            margin-top: 25px;
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 18px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            max-width: 570px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        .player-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            justify-content: center;
-        }
-
-        #current-station {
-            font-weight: bold;
-        }
-
-        audio {
-            width: 100%;
-        }
-
-        .volume-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            font-size: 0.9rem;
-        }
-
-        .volume-slider {
-            flex-grow: 1;
-            accent-color: #1db954;
-            cursor: pointer;
-        }
-
-        .mute-btn {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 6px 12px;
             border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+            margin-bottom: 10px;
+            background-color: #000;
         }
 
-        .mute-btn:hover {
-            background-color: #444;
+        .station-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .airplay-btn {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            display: none;
-        }
-
-        /* --- MINI EQUALIZER ANIMATIE --- */
-        .equalizer {
-            display: none;
-            align-items: flex-end;
-            gap: 3px;
-            height: 18px;
-            width: 22px;
-        }
-
-        .equalizer.active {
-            display: flex;
-        }
-
-        .eq-bar {
-            width: 4px;
-            background-color: #1db954;
-            animation: bounce 0.6s infinite alternate ease-in-out;
-        }
-
-        .eq-bar:nth-child(1) { animation-delay: 0.1s; height: 40%; }
-        .eq-bar:nth-child(2) { animation-delay: 0.3s; height: 100%; }
-        .eq-bar:nth-child(3) { animation-delay: 0.2s; height: 70%; }
-
-        @keyframes bounce {
-            0% { height: 20%; }
-            100% { height: 100%; }
-        }
-
-        /* Tools Box */
-        .tools-box {
+        .player-bar {
             width: 100%;
-            max-width: 570px;
-            background-color: #ffffff;
-            border: 2px solid #000000;
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 18px;
-            box-sizing: border-box;
+            max-width: 600px;
+            background-color: #1e1e1e;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .now-playing {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #b3b3b3;
+            height: 1.4em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .play-btn {
+            background-color: #1db954;
+            color: #000;
+            border: none;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.4);
+        }
+
+        .tools-section {
             display: flex;
             justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+            font-size: 0.9rem;
         }
 
         .tool-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+        }
+
+        .tool-group input, .tool-group select {
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
         }
 
         .tool-btn {
-            background-color: transparent;
+            background-color: #333;
+            color: #fff;
             border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
             cursor: pointer;
-            padding: 0;
+            font-size: 0.85rem;
         }
 
-        .tool-icon {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
+        .tool-btn.active-alarm {
+            background-color: #e74c3c;
         }
 
-        .tool-btn:hover .tool-icon {
-            filter: brightness(1.2);
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
         }
 
-        .tool-label {
+        .volume-container input[type=range] {
+            width: 70%;
+            accent-color: #1db954;
+        }
+
+        .ios-notice {
             font-size: 0.75rem;
-            color: #000000;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        @media (max-width: 400px) {
-            body { padding: 12px; }
-            h1 { font-size: 1.6rem; }
-            .grid { gap: 8px; }
-            .station-btn { min-height: 100px; padding: 8px 5px; font-size: 0.85rem; }
-            .station-logo { width: 62px; height: 47px; }
-            .tool-icon { width: 32px; height: 32px; }
+            color: #777;
+            margin-top: 8px;
         }
     </style>
 </head>
-
 <body>
 
-    <h1>📻 Ronald's Radio</h1>
+    <header>
+        <h1>Ronald's Radio</h1>
+    </header>
 
-    <div class="grid" id="station-grid">
+    <div class="station-grid" id="stationGrid"></div>
 
-        <!-- NPO RADIO 1 -->
-        <button class="station-btn" data-url="https://icecast.omroep.nl/radio1-bb-mp3" onclick="playRadio('NPO Radio 1', 'https://icecast.omroep.nl/radio1-bb-mp3', this)">
-            <img class="station-logo" src="nporadio1logo.png" alt="NPO Radio 1">
-            <span>NPO Radio 1</span>
-        </button>
-
-        <!-- RADIO 538 -->
-        <button class="station-btn" data-url="https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3" onclick="playRadio('Radio 538', 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3', this)">
-            <img class="station-logo" src="Radio 538logo.png" alt="Radio 538">
-            <span>Radio 538</span>
-        </button>
-
-        <!-- JOE NEDERLAND -->
-        <button class="station-btn" data-url="https://stream.joe.nl/joe/mp3" onclick="playRadio('JOE Nederland', 'https://stream.joe.nl/joe/mp3', this)">
-            <img class="station-logo" src="Joe_logo.png" alt="JOE Nederland">
-            <span>JOE Nederland</span>
-        </button>
-
-        <!-- NDR 2 HAMBURG -->
-        <button class="station-btn" data-url="https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3" onclick="playRadio('NDR 2 Hamburg', 'https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3', this)">
-            <img class="station-logo" src="NDR2_logo.png" alt="NDR 2 Hamburg">
-            <span>NDR 2 Hamburg</span>
-        </button>
-
-        <!-- TOEVOEGEN -->
-        <button class="station-btn add-btn" onclick="openModal()">
-            <span class="station-icon">➕</span>
-            <span>Zender Toevoegen</span>
-        </button>
-
-    </div>
-
-    <!-- POP-UP VOOR TOEVOEGEN / BEWERKEN -->
-    <div id="add-modal" class="modal">
-        <h3 id="modal-title">Nieuwe Zender Toevoegen</h3>
-        <input type="hidden" id="edit-index" value="">
+    <div class="player-bar">
+        <div class="now-playing" id="nowPlaying">Kies een zender om te luisteren</div>
         
-        <label>Naam van de radiozender:</label>
-        <input type="text" id="station-name" placeholder="Bijv. Radio 10">
-
-        <label>Stream-link:</label>
-        <input type="text" id="station-url" placeholder="https://...">
-        
-        <button class="test-btn" onclick="testStreamLink()">Test Stream-link</button>
-
-        <label>Upload PNG Logo (optioneel):</label>
-        <input type="file" id="station-logo-file" accept="image/png, image/jpeg">
-
-        <button onclick="saveStation()">Opslaan</button>
-        <button class="close-btn" onclick="closeModal()">Annuleren</button>
-    </div>
-
-    <!-- POP-UP VOOR INSTELLEN TIMER / ALARM / BACKUP -->
-    <div id="config-modal" class="modal">
-        <h3 id="config-title">Instellen</h3>
-        <div id="config-content"></div>
-        <button class="close-btn" onclick="closeConfigModal()">Sluiten</button>
-    </div>
-
-    <!-- AUDIO PLAYER -->
-    <div class="player-container">
-        <div class="player-header">
-            <span id="current-station">Kies een zender</span>
-            <div id="player-equalizer" class="equalizer">
-                <div class="eq-bar"></div>
-                <div class="eq-bar"></div>
-                <div class="eq-bar"></div>
-            </div>
+        <div class="controls">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
         </div>
-        
-        <audio id="audio-player" controls playsinline></audio>
 
         <div class="volume-container">
+            <span>🔈</span>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" oninput="setVolume(this.value)">
             <span>🔊</span>
-            <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1">
-            <button class="mute-btn" id="mute-btn" onclick="toggleMute()">Mute</button>
         </div>
+        <div class="ios-notice">Gebruik de fysieke knoppen aan de zijkant van je iPhone voor volumeregeling</div>
 
-        <button id="airplay-button" class="airplay-btn" onclick="triggerAirPlay()">📺 AirPlay</button>
+        <!-- Wekker en Slaaptimer -->
+        <div class="tools-section">
+            <div class="tool-group">
+                <label>⏰ Wekker</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="time" id="alarmTime">
+                    <button class="tool-btn" id="alarmBtn" onclick="toggleAlarm()">Zet</button>
+                </div>
+            </div>
+
+            <div class="tool-group">
+                <label>⏳ Slaaptimer</label>
+                <div style="display: flex; gap: 5px;">
+                    <select id="sleepMinutes">
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60">60 min</option>
+                    </select>
+                    <button class="tool-btn" id="timerBtn" onclick="toggleSleepTimer()">Start</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- EXTRA TOOLS -->
-    <div class="tools-box">
-        
-        <!-- SLEEPTIMER -->
-        <div class="tool-group">
-            <button class="tool-btn" onclick="openSleepConfig()">
-                <img class="tool-icon" src="Sleeptimer.png" alt="Slaaptimer">
-            </button>
-            <span id="timer-display" class="tool-label">Slaaptimer</span>
-        </div>
-
-        <!-- ALARM -->
-        <div class="tool-group">
-            <button class="tool-btn" onclick="openAlarmConfig()">
-                <img class="tool-icon" src="alarm.png" alt="Wekker">
-            </button>
-            <span id="alarm-display" class="tool-label">Wekker</span>
-        </div>
-
-        <!-- STREAM TEST -->
-        <div class="tool-group">
-            <button class="tool-btn" onclick="openModal()">
-                <img class="tool-icon" src="test.png" alt="Test">
-            </button>
-            <span class="tool-label">Test</span>
-        </div>
-
-        <!-- BACKUP & HERSTEL -->
-        <div class="tool-group">
-            <button class="tool-btn" onclick="openBackupConfig()">
-                <img class="tool-icon" src="backup.png" alt="Backup">
-            </button>
-            <span class="tool-label" onclick="openBackupConfig()" style="cursor: pointer;">Backup</span>
-        </div>
-
-    </div>
+    <audio id="audioPlayer" crossorigin="anonymous"></audio>
 
     <script>
-        const player = document.getElementById('audio-player');
-        const statusText = document.getElementById('current-station');
-        const airplayBtn = document.getElementById('airplay-button');
-        const grid = document.getElementById('station-grid');
-        const volumeSlider = document.getElementById('volume-slider');
-        const muteBtn = document.getElementById('mute-btn');
-        const playerEq = document.getElementById('player-equalizer');
-
-        let sleepTimerInterval = null;
-        let timerSecondsLeft = 0;
-        let alarmTime = null;
-        let alarmEnabled = false;
-        let alarmStationName = localStorage.getItem('alarmStationName') || 'NPO Radio 1';
-        let alarmStationUrl = localStorage.getItem('alarmStationUrl') || 'https://icecast.omroep.nl/radio1-bb-mp3';
-        let lastVolume = 1;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadSavedStations();
-            startAlarmChecker();
-            restoreLastStation();
-            loadSavedVolume();
-            loadSavedAlarmInfo();
-        });
-
-        /* RADIO AFSPELEN & EQUALIZER */
-        function playRadio(name, url, btnElement = null, saveToMemory = true) {
-            statusText.innerText = "Nu live: " + name;
-            player.pause();
-            player.src = "";
-            player.src = url;
-            player.load();
-            player.play().then(() => {
-                showActiveEqualizer(url);
-            }).catch(function(error) {
-                console.error(error);
-                statusText.innerText = "Kan " + name + " niet afspelen";
-                hideActiveEqualizer();
-            });
-
-            if (saveToMemory) {
-                localStorage.setItem('lastStationName', name);
-                localStorage.setItem('lastStationUrl', url);
+        // ALLE 8 VASTE ZENDERS
+        const stations = [
+            {
+                name: "Radio 10",
+                stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO10.mp3",
+                logo: "radio10.png"
+            },
+            {
+                name: "BNR Nieuwsradio",
+                stream: "https://stream.bnr.nl/bnr_mp3_128_20",
+                logo: "bnr.png"
+            },
+            {
+                name: "NPO Radio 2",
+                stream: "https://icecast.omroep.nl/radio2-bb-mp3",
+                logo: "nporadio2.png"
+            },
+            {
+                name: "Radio Veronica",
+                stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/VERONICA.mp3",
+                logo: "veronica.png"
+            },
+            {
+                name: "Radio 538",
+                stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3",
+                logo: "radio538.png"
+            },
+            {
+                name: "Qmusic",
+                stream: "https://icecast-qmusicnl-cdp.triple-it.nl/Qmusic_nl_live.mp3",
+                logo: "qmusic.png"
+            },
+            {
+                name: "Sky Radio",
+                stream: "https://playerservices.streamtheworld.com/api/livestream-redirect/SKYRADIO.mp3",
+                logo: "skyradio.png"
+            },
+            {
+                name: "NPO Radio 1",
+                stream: "https://icecast.omroep.nl/radio1-bb-mp3",
+                logo: "nporadio1.png"
             }
-        }
+        ];
 
-        function showActiveEqualizer(url) {
-            document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('playing'));
-            
-            const targetBtn = Array.from(document.querySelectorAll('.station-btn')).find(b => b.getAttribute('data-url') === url);
-            if (targetBtn) {
-                targetBtn.classList.add('playing');
-            }
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const nowPlaying = document.getElementById('nowPlaying');
+        let currentStationIndex = -1;
 
-            playerEq.classList.add('active');
-        }
+        // Wekker en Timer variabelen
+        let alarmTargetTime = null;
+        let alarmInterval = null;
+        let sleepTimerTimeout = null;
 
-        function hideActiveEqualizer() {
-            document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('playing'));
-            playerEq.classList.remove('active');
-        }
-
-        player.addEventListener('pause', () => {
-            hideActiveEqualizer();
-        });
-
-        function restoreLastStation() {
-            const lastName = localStorage.getItem('lastStationName');
-            const lastUrl = localStorage.getItem('lastStationUrl');
-            if (lastName && lastUrl) {
-                statusText.innerText = "Klaar om te spelen: " + lastName;
-                player.src = lastUrl;
-            }
-        }
-
-        /* VOLUME REGELING (MOBIEL & DESKTOP) */
-        volumeSlider.addEventListener('input', (e) => {
-            setAppVolume(e.target.value);
-        });
-
-        volumeSlider.addEventListener('change', (e) => {
-            setAppVolume(e.target.value);
-        });
-
-        function setAppVolume(val) {
-            player.volume = val;
-            player.muted = false;
-            muteBtn.innerText = "Mute";
-            localStorage.setItem('radioVolume', val);
-        }
-
-        function loadSavedVolume() {
-            const savedVol = localStorage.getItem('radioVolume');
-            if (savedVol !== null) {
-                player.volume = savedVol;
-                volumeSlider.value = savedVol;
-            }
-        }
-
-        function toggleMute() {
-            if (player.muted) {
-                player.muted = false;
-                volumeSlider.value = lastVolume;
-                muteBtn.innerText = "Mute";
-            } else {
-                lastVolume = player.volume;
-                player.muted = true;
-                volumeSlider.value = 0;
-                muteBtn.innerText = "Unmute";
-            }
-        }
-
-        /* MODAL BEHEER */
-        function openModal(editIndex = null) {
-            document.getElementById('add-modal').style.display = 'block';
-            if (editIndex !== null) {
-                let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-                let st = stations[editIndex];
-                document.getElementById('modal-title').innerText = "Zender Bewerken";
-                document.getElementById('edit-index').value = editIndex;
-                document.getElementById('station-name').value = st.name;
-                document.getElementById('station-url').value = st.url;
-            } else {
-                document.getElementById('modal-title').innerText = "Nieuwe Zender Toevoegen";
-                document.getElementById('edit-index').value = '';
-                document.getElementById('station-name').value = '';
-                document.getElementById('station-url').value = '';
-                document.getElementById('station-logo-file').value = '';
-            }
-        }
-
-        function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
-
-        /* STREAM TEST */
-        function testStreamLink() {
-            const url = document.getElementById('station-url').value.trim();
-            if (!url) {
-                alert("Vul eerst een stream-link in om te testen!");
-                return;
-            }
-            const testAudio = new Audio(url);
-            testAudio.play().then(() => {
-                testAudio.pause();
-                alert("✅ Deze stream-link werkt en kan worden afgespeeld!");
-            }).catch(() => {
-                alert("❌ Kan geen verbinding maken met deze stream-link.");
-            });
-        }
-
-        function saveStation() {
-            const name = document.getElementById('station-name').value.trim();
-            const url = document.getElementById('station-url').value.trim();
-            const editIndex = document.getElementById('edit-index').value;
-            const fileInput = document.getElementById('station-logo-file');
-
-            if (!name || !url) {
-                alert("Vul zowel de naam als de stream-link in!");
-                return;
-            }
-
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    processStationSave(name, url, e.target.result, editIndex);
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                let existingLogo = '';
-                if (editIndex !== '') {
-                    let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-                    existingLogo = stations[editIndex].logo || '';
-                }
-                processStationSave(name, url, existingLogo, editIndex);
-            }
-        }
-
-        function processStationSave(name, url, logo, editIndex) {
-            let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-            if (editIndex !== '') {
-                stations[editIndex] = { name: name, url: url, logo: logo };
-            } else {
-                stations.push({ name: name, url: url, logo: logo });
-            }
-            localStorage.setItem('myRadioStations', JSON.stringify(stations));
-            closeModal();
-            loadSavedStations();
-        }
-
-        function deleteStation(index) {
-            let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-            stations.splice(index, 1);
-            localStorage.setItem('myRadioStations', JSON.stringify(stations));
-            loadSavedStations();
-        }
-
-        function loadSavedStations() {
-            const customButtons = grid.querySelectorAll('.custom-station');
-            customButtons.forEach(button => button.remove());
-
-            const stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-            const addBtn = grid.querySelector('.add-btn');
+        function loadStations() {
+            const grid = document.getElementById('stationGrid');
+            grid.innerHTML = '';
 
             stations.forEach((station, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'station-btn custom-station';
-                btn.setAttribute('data-url', station.url);
+                const card = document.createElement('div');
+                card.className = `station-card ${index === currentStationIndex ? 'active' : ''}`;
+                card.onclick = () => selectStation(index);
 
-                const delBtn = document.createElement('span');
-                delBtn.className = 'delete-btn';
-                delBtn.innerHTML = '✕';
-                delBtn.onclick = function(e) {
-                    e.stopPropagation();
-                    deleteStation(index);
-                };
-                btn.appendChild(delBtn);
+                card.innerHTML = `
+                    <img src="${station.logo}" onerror="this.src='Opstart.png';" alt="${station.name}">
+                    <h3>${station.name}</h3>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-                const editBtn = document.createElement('span');
-                editBtn.className = 'edit-btn';
-                editBtn.innerHTML = '✏️';
-                editBtn.onclick = function(e) {
-                    e.stopPropagation();
-                    openModal(index);
-                };
-                btn.appendChild(editBtn);
+        function selectStation(index) {
+            currentStationIndex = index;
+            const station = stations[index];
+            
+            audio.src = station.stream;
+            audio.play().catch(e => {
+                console.log("Afspelen mislukt:", e);
+                nowPlaying.innerText = "Fout bij afspelen van " + station.name;
+            });
+            
+            playBtn.innerText = '⏸';
+            nowPlaying.innerText = 'Aan het spelen: ' + station.name;
 
-                if (station.logo) {
-                    const img = document.createElement('img');
-                    img.className = 'station-logo';
-                    img.src = station.logo;
-                    img.alt = station.name;
-                    btn.appendChild(img);
-                } else {
-                    const icon = document.createElement('div');
-                    icon.className = 'station-icon';
-                    icon.innerText = '📻';
-                    btn.appendChild(icon);
+            loadStations();
+        }
+
+        function togglePlay() {
+            if (currentStationIndex === -1) {
+                selectStation(0);
+                return;
+            }
+
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerText = '⏸';
+            } else {
+                audio.pause();
+                playBtn.innerText = '▶';
+            }
+        }
+
+        function setVolume(val) {
+            audio.volume = val;
+        }
+
+        // --- Wekker Logica ---
+        function toggleAlarm() {
+            const btn = document.getElementById('alarmBtn');
+            const timeInput = document.getElementById('alarmTime').value;
+
+            if (alarmTargetTime) {
+                // Zet wekker uit
+                alarmTargetTime = null;
+                clearInterval(alarmInterval);
+                btn.innerText = "Zet";
+                btn.classList.remove('active-alarm');
+                alert("Wekker uitgezet.");
+            } else {
+                if (!timeInput) {
+                    alert("Kies eerst een wekkertijd!");
+                    return;
                 }
-
-                const label = document.createElement('span');
-                label.innerText = station.name;
-                btn.appendChild(label);
-
-                btn.onclick = function() {
-                    playRadio(station.name, station.url, btn);
-                };
-
-                grid.insertBefore(btn, addBtn);
-            });
-        }
-
-        /* CONFIG MODAL & SLAAPTIMER / WEKKER / BACKUP */
-        function openSleepConfig() {
-            document.getElementById('config-title').innerText = "Slaaptimer Instellen";
-            document.getElementById('config-content').innerHTML = `
-                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 10px;">Kies na hoeveel minuten de radio moet stoppen:</p>
-                <button onclick="setSleepTimer(15); closeConfigModal();" style="margin-bottom: 8px;">15 Minuten</button>
-                <button onclick="setSleepTimer(30); closeConfigModal();" style="margin-bottom: 8px;">30 Minuten</button>
-                <button onclick="setSleepTimer(45); closeConfigModal();" style="margin-bottom: 8px;">45 Minuten</button>
-                <button onclick="setSleepTimer(60); closeConfigModal();" style="margin-bottom: 8px;">60 Minuten</button>
-                <button style="background-color: #d32f2f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;" onclick="cancelSleepTimer(); closeConfigModal();">Timer Uitzetten</button>
-            `;
-            document.getElementById('config-modal').style.display = 'block';
-        }
-
-        function openAlarmConfig() {
-            let allStations = [
-                { name: 'NPO Radio 1', url: 'https://icecast.omroep.nl/radio1-bb-mp3' },
-                { name: 'Radio 538', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3' },
-                { name: 'JOE Nederland', url: 'https://stream.joe.nl/joe/mp3' },
-                { name: 'NDR 2 Hamburg', url: 'https://icecast.ndr.de/ndr/ndr2/hamburg/mp3/128/stream.mp3' }
-            ];
-            const customStations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
-            allStations = allStations.concat(customStations);
-
-            let optionsHtml = '';
-            allStations.forEach(st => {
-                let selected = (st.url === alarmStationUrl) ? 'selected' : '';
-                optionsHtml += `<option value="${st.url}" data-name="${st.name}" ${selected}>${st.name}</option>`;
-            });
-
-            document.getElementById('config-title').innerText = "Radio Wekker Instellen";
-            document.getElementById('config-content').innerHTML = `
-                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 5px;">Kies de gewenste wektijd:</p>
-                <input type="time" id="alarm-time-input" value="${alarmTime || '07:00'}" style="
-                    width: 100%;
-                    padding: 10px;
-                    background-color: #121212;
-                    border: 2px solid #1db954;
-                    color: white;
-                    font-size: 1.2rem;
-                    font-weight: bold;
-                    text-align: center;
-                    border-radius: 10px;
-                    box-sizing: border-box;
-                    margin-bottom: 12px;
-                    outline: none;
-                ">
-
-                <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 5px;">Kies de wek-zender:</p>
-                <select id="alarm-station-select" style="
-                    width: 100%;
-                    padding: 10px;
-                    background-color: #121212;
-                    border: 1px solid #444;
-                    color: white;
-                    border-radius: 5px;
-                    font-size: 1rem;
-                    margin-bottom: 15px;
-                    box-sizing: border-box;
-                ">
-                    ${optionsHtml}
-                </select>
-
-                <button onclick="saveAlarmSettings(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">Wekker Opslaan & Aanzetten</button>
-                <button style="background-color: #d32f2f; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;" onclick="disableAlarm(); closeConfigModal();">Wekker Uitzetten</button>
-            `;
-            document.getElementById('config-modal').style.display = 'block';
-        }
-
-        /* 100% MOBIEL-VRIENDELIJK BACKUP SCHERM VIA TEKSTAK */
-        function openBackupConfig() {
-            const currentStations = localStorage.getItem('myRadioStations') || '[]';
-
-            document.getElementById('config-title').innerText = "Backup & Zenders Importeren";
-            document.getElementById('config-content').innerHTML = `
-                <p style="color: #bbb; font-size: 0.85rem; margin-bottom: 8px;"><b>Jouw zender-code (kopieer of plak hier):</b></p>
-                <textarea id="backup-text-area" rows="5" style="
-                    width: 100%;
-                    background-color: #121212;
-                    color: #1db954;
-                    border: 1px solid #444;
-                    border-radius: 6px;
-                    padding: 8px;
-                    font-size: 0.8rem;
-                    box-sizing: border-box;
-                    resize: none;
-                ">${currentStations}</textarea>
+                alarmTargetTime = timeInput;
+                btn.innerText = "Anuleer";
+                btn.classList.add('active-alarm');
                 
-                <button onclick="copyBackupText();" style="background-color: #333; border: 1px solid #1db954; color: white; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 8px;">📋 Kopieer naar Klembord</button>
+                // Check elke seconde of de tijd bereikt is
+                alarmInterval = setInterval(() => {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const currentTime = `${hours}:${minutes}`;
+
+                    if (currentTime === alarmTargetTime) {
+                        if (currentStationIndex === -1) currentStationIndex = 0;
+                        selectStation(currentStationIndex);
+                        toggleAlarm(); // Schakel wekker uit na afgaan
+                    }
+                }, 1000);
+
+                alert(`Wekker gezet op ${alarmTargetTime}!`);
+            }
+        }
+
+        // --- Slaaptimer Logica ---
+        function toggleSleepTimer() {
+            const btn = document.getElementById('timerBtn');
+            const minutes = parseInt(document.getElementById('sleepMinutes').value);
+
+            if (sleepTimerTimeout) {
+                clearTimeout(sleepTimerTimeout);
+                sleepTimerTimeout = null;
+                btn.innerText = "Start";
+                btn.style.backgroundColor = "#333";
+                alert("Slaaptimer geannuleerd.");
+            } else {
+                btn.innerText = "Stop";
+                btn.style.backgroundColor = "#e74c3c";
                 
-                <button onclick="importBackupText(); closeConfigModal();" style="background-color: #1db954; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 8px;">📥 Herstel / Laad vanaf tekst</button>
-            `;
-            document.getElementById('config-modal').style.display = 'block';
-        }
+                sleepTimerTimeout = setTimeout(() => {
+                    audio.pause();
+                    playBtn.innerText = '▶';
+                    nowPlaying.innerText = "Slaaptimer afgelopen (gestopt)";
+                    toggleSleepTimer();
+                }, minutes * 60 * 1000);
 
-        function copyBackupText() {
-            const textarea = document.getElementById('backup-text-area');
-            textarea.select();
-            textarea.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(textarea.value).then(() => {
-                alert("✅ Zenders gekopieerd! Je kunt dit nu in een WhatsAppje of notitie plakken om te bewaren.");
-            }).catch(() => {
-                alert("Kopiëren mislukt, selecteer de tekst handmatig.");
-            });
-        }
-
-        function importBackupText() {
-            const text = document.getElementById('backup-text-area').value.trim();
-            try {
-                const stations = JSON.parse(text);
-                if (Array.isArray(stations)) {
-                    localStorage.setItem('myRadioStations', JSON.stringify(stations));
-                    loadSavedStations();
-                    alert("✅ Zenders succesvol teruggezet!");
-                } else {
-                    alert("❌ Ongeldige opmaak.");
-                }
-            } catch (err) {
-                alert("❌ Fout in de tekst. Zorg dat het geldige code is.");
+                alert(`Slaaptimer ingesteld op ${minutes} minuten.`);
             }
         }
 
-        function closeConfigModal() { document.getElementById('config-modal').style.display = 'none'; }
-
-        /* SLAAPTIMER */
-        function setSleepTimer(minutes) {
-            timerSecondsLeft = minutes * 60;
-            updateTimerDisplay();
-            document.getElementById('timer-display').style.color = "#1db954";
-
-            if (sleepTimerInterval) clearInterval(sleepTimerInterval);
-            sleepTimerInterval = setInterval(() => {
-                timerSecondsLeft--;
-                updateTimerDisplay();
-
-                if (timerSecondsLeft <= 0) {
-                    player.pause();
-                    statusText.innerText = "Radio gestopt (Slaaptimer)";
-                    cancelSleepTimer();
-                }
-            }, 1000);
-        }
-
-        function cancelSleepTimer() {
-            clearInterval(sleepTimerInterval);
-            sleepTimerInterval = null;
-            document.getElementById('timer-display').innerText = "Slaaptimer";
-            document.getElementById('timer-display').style.color = "#000000";
-        }
-
-        function updateTimerDisplay() {
-            const m = Math.floor(timerSecondsLeft / 60);
-            const s = timerSecondsLeft % 60;
-            document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-
-        /* ALARM */
-        function saveAlarmSettings() {
-            const timeVal = document.getElementById('alarm-time-input').value;
-            const selectEl = document.getElementById('alarm-station-select');
-            const urlVal = selectEl.value;
-            const nameVal = selectEl.options[selectEl.selectedIndex].getAttribute('data-name');
-
-            if (timeVal && urlVal) {
-                alarmTime = timeVal;
-                alarmStationUrl = urlVal;
-                alarmStationName = nameVal;
-                alarmEnabled = true;
-
-                localStorage.setItem('alarmTime', alarmTime);
-                localStorage.setItem('alarmStationUrl', alarmStationUrl);
-                localStorage.setItem('alarmStationName', alarmStationName);
-                localStorage.setItem('alarmEnabled', 'true');
-
-                document.getElementById('alarm-display').innerText = alarmTime;
-                document.getElementById('alarm-display').style.color = "#1db954";
-                alert(`Wekker ingeschakeld voor ${alarmTime} met ${alarmStationName}!`);
-            }
-        }
-
-        function disableAlarm() {
-            alarmEnabled = false;
-            alarmTime = null;
-            localStorage.removeItem('alarmEnabled');
-            localStorage.removeItem('alarmTime');
-            document.getElementById('alarm-display').innerText = "Wekker";
-            document.getElementById('alarm-display').style.color = "#000000";
-            alert("Wekker uitgeschakeld.");
-        }
-
-        function loadSavedAlarmInfo() {
-            const savedEnabled = localStorage.getItem('alarmEnabled');
-            const savedTime = localStorage.getItem('alarmTime');
-            const savedUrl = localStorage.getItem('alarmStationUrl');
-            const savedName = localStorage.getItem('alarmStationName');
-
-            if (savedEnabled === 'true' && savedTime) {
-                alarmEnabled = true;
-                alarmTime = savedTime;
-                if (savedUrl) alarmStationUrl = savedUrl;
-                if (savedName) alarmStationName = savedName;
-
-                document.getElementById('alarm-display').innerText = alarmTime;
-                document.getElementById('alarm-display').style.color = "#1db954";
-            }
-        }
-
-        function startAlarmChecker() {
-            setInterval(() => {
-                if (!alarmEnabled || !alarmTime) return;
-                const now = new Date();
-                const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-                if (currentTimeStr === alarmTime && now.getSeconds() === 0) {
-                    playRadio(alarmStationName, alarmStationUrl);
-                    disableAlarm();
-                    alert(`⏰ Wekker! Goedemorgen, gestart met ${alarmStationName}.`);
-                }
-            }, 1000);
-        }
-
-        /* AIRPLAY */
-        if (window.WebKitPlaybackTargetAvailabilityEvent) {
-            player.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
-                if (event.availability === 'available') {
-                    airplayBtn.style.display = 'block';
-                }
-            });
-        }
-
-        function triggerAirPlay() {
-            if (player.webkitShowPlaybackTargetPicker) {
-                player.webkitShowPlaybackTargetPicker();
-            }
-        }
+        loadStations();
     </script>
-
 </body>
 </html>
