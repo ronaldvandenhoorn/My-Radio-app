@@ -1,1 +1,247 @@
+DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn Eigen Radio App</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #1db954;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .station-btn {
+            background-color: #1e1e1e;
+            color: white;
+            border: 2px solid #333;
+            padding: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .station-btn:hover, .station-btn:focus {
+            background-color: #1db954;
+            border-color: #fff;
+            transform: scale(1.05);
+            outline: none;
+        }
+
+        /* Speciale styling voor de Toevoegknop */
+        .add-btn {
+            background-color: #282828;
+            color: #1db954;
+            border: 2px dashed #1db954;
+        }
+        .add-btn:hover {
+            background-color: #1db954;
+            color: white;
+            border-style: solid;
+        }
+
+        /* Het pop-up formulier om zenders toe te voegen */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #282828;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            background-color: #121212;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .modal .close-btn {
+            background-color: #777;
+            margin-top: 10px;
+        }
+
+        .player-container {
+            margin-top: 50px;
+            background-color: #1e1e1e;
+            padding: 20px 40px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        #current-station {
+            font-weight: bold;
+            padding: 0 10px;
+        }
+
+        .airplay-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📻 Mijn Radio</h1>
+    
+    <div class="grid" id="station-grid">
+        <!-- De standaard zenders -->
+        <button class="station-btn" onclick="playRadio('NPO Radio 1', 'https://omroep.nl')">NPO Radio 1</button>
+        <button class="station-btn" onclick="playRadio('NPO Radio 2', 'https://omroep.nl')">NPO Radio 2</button>
+        <button class="station-btn" onclick="playRadio('Qmusic', 'https://qmusic.nl')">Qmusic</button>
+        <button class="station-btn" onclick="playRadio('Radio 538', 'https://radio538.nl')">Radio 538</button>
+        
+        <!-- De slimme "+" knop -->
+        <button class="station-btn add-btn" onclick="openModal()">➕ Zender Toevoegen</button>
+    </div>
+
+    <!-- Het invulschermpje (Pop-up) -->
+    <div id="add-modal" class="modal">
+        <h3>Nieuwe Zender Toevoegen</h3>
+        <label>Naam van de radiozender:</label>
+        <input type="text" id="station-name" placeholder="Bijv. Radio 10">
+        
+        <label>Stream-link (URL):</label>
+        <input type="text" id="station-url" placeholder="https://...">
+        
+        <button onclick="saveStation()">Opslaan</button>
+        <button class="close-btn" onclick="closeModal()">Annuleren</button>
+    </div>
+
+    <div class="player-container">
+        <span id="current-station">Kies een zender</span>
+        <audio id="audio-player" controls></audio>
+        <button id="airplay-button" class="airplay-btn" onclick="triggerAirPlay()">📺 AirPlay</button>
+    </div>
+
+    <script>
+        const player = document.getElementById('audio-player');
+        const statusText = document.getElementById('current-station');
+        const airplayBtn = document.getElementById('airplay-button');
+        const grid = document.getElementById('station-grid');
+
+        // Laad opgeslagen zenders direct bij het openen van de app
+        document.addEventListener("DOMContentLoaded", loadSavedStations);
+
+        function playRadio(name, url) {
+            statusText.innerText = "Nu live: " + name;
+            player.src = url;
+            player.play();
+        }
+
+        // Pop-up functies
+        function openModal() { document.getElementById('add-modal').style.display = 'block'; }
+        function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
+
+        // Zender opslaan in het telefoongeheugen
+        function saveStation() {
+            const name = document.getElementById('station-name').value;
+            const url = document.getElementById('station-url').value;
+
+            if(name && url) {
+                let stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+                stations.push({name: name, url: url});
+                localStorage.setItem('myRadioStations', JSON.stringify(stations));
+                
+                // Reset velden en sluit pop-up
+                document.getElementById('station-name').value = '';
+                document.getElementById('station-url').value = '';
+                closeModal();
+                
+                // Ververs de lijst op het scherm
+                loadSavedStations();
+            } else {
+                alert("Vul aankoop de naam én de link in!");
+            }
+        }
+
+        // Opgeslagen zenders op het scherm tonen
+        function loadSavedStations() {
+            // Verwijder eerst alle oude handmatig toegevoegde knoppen (behalve de standaard 4 + de Toevoegknop)
+            const buttons = grid.querySelectorAll('.station-btn:not(.add-btn)');
+            if (buttons.length > 4) {
+                for (let i = buttons.length - 1; i >= 4; i--) {
+                    buttons[i].remove();
+                }
+            }
+
+            const stations = JSON.parse(localStorage.getItem('myRadioStations')) || [];
+            const addBtn = grid.querySelector('.add-btn');
+
+            // Maak voor elke opgeslagen zender een mooie knop aan net vóór de "+" knop
+            stations.forEach(station => {
+                const btn = document.createElement('button');
+                btn.className = 'station-btn';
+                btn.innerText = station.name;
+                btn.onclick = function() { playRadio(station.name, station.url); };
+                grid.insertBefore(btn, addBtn);
+            });
+        }
+
+        // AirPlay functionaliteit
+        if (window.WebKitPlaybackTargetAvailabilityEvent) {
+            player.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
+                if (event.availability === 'available') { airplayBtn.style.display = 'block'; }
+            });
+        }
+        function triggerAirPlay() {
+            if (player.webkitShowPlaybackTargetPicker) { player.webkitShowPlaybackTargetPicker(); }
+        }
+    </script>
+
+</body>
+</html>
 
